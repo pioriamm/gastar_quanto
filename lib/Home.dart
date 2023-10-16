@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:simple_currency_format/simple_currency_format.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -19,7 +20,10 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         actions: [
           IconButton(
-            onPressed: () => AddLista(),
+            onPressed: () {
+              AddLista();
+              atualizarLista();
+            },
             icon: const Icon(Icons.shopping_cart),
           )
         ],
@@ -43,6 +47,7 @@ class _HomeState extends State<Home> {
                         hintText: 'Informe o produto'),
                   ),
                   TextField(
+                    keyboardType: TextInputType.number,
                     controller: valorUnitario,
                     autofocus: true,
                     decoration: const InputDecoration(
@@ -59,107 +64,119 @@ class _HomeState extends State<Home> {
             child: ListView.builder(
               itemCount: compras.length,
               itemBuilder: (c, i) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            height: 50,
-                            width: MediaQuery.of(context).size.width / 2.3,
-                            child: Text(
-                              "${compras[i]["descricao"]}",
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            height: 50,
-                            width: MediaQuery.of(context).size.width / 2.3,
-                            child: Text(
-                              "R\$${compras[i]["valor"]}",
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Container(
-                            height: 50,
-                            width: MediaQuery.of(context).size.width / 2.3,
-                            child: Row(
-                              children: [
-                                TextButton(
-                                  onPressed: compras[i]["quantidade"] == 1
-                                      ? null
-                                      : () => setState(() {
-                                            total = 0;
-                                            compras[i]["quantidade"]--;
-                                            for (var element in compras) {
-                                              total = total +
-                                                  (element["valor"] *
-                                                      element["quantidade"]);
-                                            }
-                                          }),
-                                  child: const Text("-"),
+                return Dismissible(
+                  key: Key("${compras[i]["descricao"]}"),
+                  onDismissed: (direction) {
+                    setState(() {
+                      compras.removeAt(i);
+                      atualizarLista();
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content:
+                            Text("${compras[i]["descricao"]} foi removido")));
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0, vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: 50,
+                              width: MediaQuery.of(context).size.width / 2.3,
+                              child: Text(
+                                "${compras[i]["descricao"]}",
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                                Text("  ${compras[i]["quantidade"]}"),
-                                TextButton(
-                                  onPressed: () => setState(() {
-                                    total = 0;
-                                    compras[i]["quantidade"]++;
-                                    for (var element in compras) {
-                                      total = total +
-                                          (element["valor"] *
-                                              element["quantidade"]);
-                                    }
-                                  }),
-                                  child: const Text("+"),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(
-                            height: 50,
-                            child: Text(
-                              textAlign: TextAlign.end,
-                              "R\$ ${compras[i]["quantidade"] * compras[i]["valor"]}",
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                            SizedBox(
+                              height: 50,
+                              width: MediaQuery.of(context).size.width / 2.3,
+                              child: Text(
+                                "${currencyFormat(compras[i]["valor"], symbol: "R\$")}",
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Container(
+                              height: 50,
+                              width: MediaQuery.of(context).size.width / 2.3,
+                              child: Row(
+                                children: [
+                                  TextButton(
+                                    onPressed: compras[i]["quantidade"] == 1
+                                        ? null
+                                        : () => setState(() {
+                                              total = 0;
+                                              compras[i]["quantidade"]--;
+                                              atualizarLista();
+                                            }),
+                                    child: const Text("-"),
+                                  ),
+                                  Text("  ${compras[i]["quantidade"]}"),
+                                  TextButton(
+                                    onPressed: () => setState(() {
+                                      total = 0;
+                                      compras[i]["quantidade"]++;
+                                      for (var element in compras) {
+                                        total = total +
+                                            (element["valor"] *
+                                                element["quantidade"]);
+                                      }
+                                    }),
+                                    child: const Text("+"),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              height: 50,
+                              child: Text(
+                                textAlign: TextAlign.end,
+                                "${currencyFormat(compras[i]["quantidade"] * compras[i]["valor"], symbol: "R\$")}",
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Text(
-              "R\$ $total",
-              style: const TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
+          widget_total(),
         ],
+      ),
+    );
+  }
+
+  Padding widget_total() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Text(
+        "${currencyFormat(total, symbol: "R\$")}",
+        style: const TextStyle(
+          fontSize: 40,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -168,9 +185,7 @@ class _HomeState extends State<Home> {
     var descrcaoInofrmado = descricaoProduto.text;
     double valorInformado = double.parse(valorUnitario.text);
 
-    for (var element in compras) {
-      total = total + (element["valor"] * element["quantidade"]);
-    }
+    atualizarLista();
 
     setState(() {
       compras.add(
@@ -183,5 +198,15 @@ class _HomeState extends State<Home> {
     });
     descricaoProduto.clear();
     valorUnitario.clear();
+  }
+
+  void atualizarLista() {
+    if (compras.isEmpty) {
+      total = 0.00;
+    } else {
+      for (var element in compras) {
+        total = total + (element["valor"] * element["quantidade"]);
+      }
+    }
   }
 }
