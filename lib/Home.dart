@@ -21,7 +21,7 @@ class _HomeState extends State<Home> {
         actions: [
           IconButton(
             onPressed: () {
-              AddLista();
+              adicionarPedidoLista();
               atualizarLista();
             },
             icon: const Icon(Icons.shopping_cart),
@@ -29,146 +29,152 @@ class _HomeState extends State<Home> {
         ],
         title: const Text("Quando Custa"),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: SizedBox(
-              height: 100,
-              child: Column(
-                children: [
-                  TextField(
-                    autofocus: true,
-                    controller: descricaoProduto,
-                    decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        icon: Icon(Icons.pending_actions),
-                        hintText: 'Informe o produto'),
-                  ),
-                  TextField(
-                    keyboardType: TextInputType.number,
-                    controller: valorUnitario,
-                    autofocus: true,
-                    decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        icon: Icon(Icons.monetization_on_outlined),
-                        hintText: 'Informe o valor'),
-                  ),
-                ],
+      body: SingleChildScrollView(
+        reverse: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: SizedBox(
+                height: 100,
+                child: Column(
+                  children: [
+                    TextField(
+                      autofocus: true,
+                      controller: descricaoProduto,
+                      decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          icon: Icon(Icons.pending_actions),
+                          hintText: 'Informe o produto'),
+                    ),
+                    TextField(
+                      keyboardType: TextInputType.number,
+                      controller: valorUnitario,
+                      autofocus: true,
+                      onSubmitted: (value) {
+                        adicionarPedidoLista();
+                      },
+                      decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          icon: Icon(Icons.monetization_on_outlined),
+                          hintText: 'Informe o valor'),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          SizedBox(
-            height: MediaQuery.of(context).size.width / 0.7,
-            child: ListView.builder(
-              itemCount: compras.length,
-              itemBuilder: (c, i) {
-                return Dismissible(
-                  key: Key("${compras[i]["descricao"]}"),
-                  onDismissed: (direction) {
-                    setState(() {
-                      compras.removeAt(i);
-                      atualizarLista();
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content:
-                            Text("${compras[i]["descricao"]} foi removido")));
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0, vertical: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(
-                              height: 50,
-                              width: MediaQuery.of(context).size.width / 2.3,
-                              child: Text(
-                                "${compras[i]["descricao"]}",
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 50,
-                              width: MediaQuery.of(context).size.width / 2.3,
-                              child: Text(
-                                "${currencyFormat(compras[i]["valor"], symbol: "R\$")}",
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Container(
-                              height: 50,
-                              width: MediaQuery.of(context).size.width / 2.3,
-                              child: Row(
-                                children: [
-                                  TextButton(
-                                    onPressed: compras[i]["quantidade"] == 1
-                                        ? null
-                                        : () => setState(() {
-                                              total = 0;
-                                              compras[i]["quantidade"]--;
-                                              atualizarLista();
-                                            }),
-                                    child: const Text("-"),
+            SizedBox(
+              height: MediaQuery.of(context).size.height / 1.5,
+              child: ListView.builder(
+                itemCount: compras.length,
+                itemBuilder: (c, i) {
+                  return Dismissible(
+                    key: Key("${compras[i]["descricao"]}"),
+                    onDismissed: (direction) {
+                      setState(() {
+                        compras.removeAt(i);
+                        atualizarLista();
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content:
+                              Text("${compras[i]["descricao"]} foi removido")));
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0, vertical: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                height: 50,
+                                width: MediaQuery.of(context).size.width / 2.3,
+                                child: Text(
+                                  "${compras[i]["descricao"]}",
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  Text("  ${compras[i]["quantidade"]}"),
-                                  TextButton(
-                                    onPressed: () => setState(() {
-                                      total = 0;
-                                      compras[i]["quantidade"]++;
-                                      for (var element in compras) {
-                                        total = total +
-                                            (element["valor"] *
-                                                element["quantidade"]);
-                                      }
-                                    }),
-                                    child: const Text("+"),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              height: 50,
-                              child: Text(
-                                textAlign: TextAlign.end,
-                                "${currencyFormat(compras[i]["quantidade"] * compras[i]["valor"], symbol: "R\$")}",
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w900,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                              SizedBox(
+                                height: 50,
+                                width: MediaQuery.of(context).size.width / 2.3,
+                                child: Text(
+                                  "${currencyFormat(compras[i]["valor"], symbol: "R\$")}",
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              SizedBox(
+                                height: 50,
+                                width: MediaQuery.of(context).size.width / 2.3,
+                                child: Row(
+                                  children: [
+                                    TextButton(
+                                      onPressed: compras[i]["quantidade"] == 1
+                                          ? null
+                                          : () => setState(() {
+                                                total = 0;
+                                                compras[i]["quantidade"]--;
+                                                atualizarLista();
+                                              }),
+                                      child: const Text("-"),
+                                    ),
+                                    Text("  ${compras[i]["quantidade"]}"),
+                                    TextButton(
+                                      onPressed: () => setState(() {
+                                        total = 0;
+                                        compras[i]["quantidade"]++;
+                                        for (var element in compras) {
+                                          total = total +
+                                              (element["valor"] *
+                                                  element["quantidade"]);
+                                        }
+                                      }),
+                                      child: const Text("+"),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: 50,
+                                child: Text(
+                                  textAlign: TextAlign.end,
+                                  "${currencyFormat(compras[i]["quantidade"] * compras[i]["valor"], symbol: "R\$")}",
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-          widget_total(),
-        ],
+            widgetTotal(),
+          ],
+        ),
       ),
     );
   }
 
-  Padding widget_total() {
+  Padding widgetTotal() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Text(
@@ -181,7 +187,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  void AddLista() {
+  void adicionarPedidoLista() {
     var descrcaoInofrmado = descricaoProduto.text;
     double valorInformado = double.parse(valorUnitario.text);
 
@@ -190,7 +196,7 @@ class _HomeState extends State<Home> {
     setState(() {
       compras.add(
         {
-          "descricao": "$descrcaoInofrmado",
+          "descricao": descrcaoInofrmado,
           "quantidade": 1,
           "valor": valorInformado
         },
