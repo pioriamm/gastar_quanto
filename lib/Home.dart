@@ -41,7 +41,7 @@ class _HomeState extends State<Home> {
                 child: Column(
                   children: [
                     TextField(
-                      autofocus: true,
+                      autofocus: false,
                       controller: descricaoProduto,
                       decoration: const InputDecoration(
                           border: InputBorder.none,
@@ -49,9 +49,10 @@ class _HomeState extends State<Home> {
                           hintText: 'Informe o produto'),
                     ),
                     TextField(
-                      keyboardType: TextInputType.number,
+                      keyboardType: const TextInputType.numberWithOptions(
+                          signed: false, decimal: true),
                       controller: valorUnitario,
-                      autofocus: true,
+                      autofocus: false,
                       onSubmitted: (value) {
                         adicionarPedidoLista();
                       },
@@ -77,6 +78,8 @@ class _HomeState extends State<Home> {
                         atualizarLista();
                       });
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          showCloseIcon: true,
+                          backgroundColor: Colors.red,
                           content:
                               Text("${compras[i]["descricao"]} foi removido")));
                     },
@@ -189,7 +192,8 @@ class _HomeState extends State<Home> {
 
   void adicionarPedidoLista() {
     var descrcaoInofrmado = descricaoProduto.text;
-    double valorInformado = double.parse(valorUnitario.text);
+    double valorInformado =
+        double.parse(valorUnitario.text.replaceAll(',', '.'));
 
     atualizarLista();
 
